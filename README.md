@@ -13,24 +13,7 @@ A flexible screenshot utility for Linux that works on both X11 and Wayland.
 
 ## Installation
 
-### Option 1: Debian Package (.deb)
-
-For Debian, Ubuntu, and other Debian-based distributions:
-
-1. Download the .deb package from the releases page
-2. Install with:
-   ```
-   sudo dpkg -i perl-screenshot-tool-0.1.deb
-   ```
-3. If there are dependency issues, fix them with:
-   ```
-   sudo apt-get install -f
-   ```
-4. Launch the application:
-   - From the application menu: Look for "Perl Screenshot Tool"
-   - From the command line: `screenshot-tool`
-
-### Option 2: Standard Installation
+###  Standard Installation
 
 1. Download the source code:
    ```
