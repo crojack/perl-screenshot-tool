@@ -575,80 +575,19 @@ sub save_screenshot {
     }
     
     if ($self->config->save_location eq 'clipboard') {
-      
+       
         my $clipboard = Gtk3::Clipboard::get(Gtk3::Gdk::Atom::intern('CLIPBOARD', FALSE));
         $clipboard->set_image($pixbuf);
         $self->app->log_message('info', "Screenshot copied to clipboard");
     } else {
-       
-        my $timestamp = strftime("%Y-%m-%d-%H%M%S", localtime);
-        
-        my $format_string;
-        if ($self->config->image_format eq "jpg") {
-            $format_string = "jpeg";
-        } elsif ($self->config->image_format eq "webp") {
-            $format_string = "webp";
-        } elsif ($self->config->image_format eq "avif" && $self->config->avif_supported) {
-            $format_string = "avif";
+      
+        if ($self->config->show_floating_thumbnail) {
+            $self->ui->show_floating_thumbnail($pixbuf, undef);
         } else {
-            $format_string = $self->config->image_format; 
-        }
-        
-        my $file_extension = $self->config->image_format;  
-        
-        my $filename = "Screenshot-$timestamp.$file_extension";
-        my $filepath = File::Spec->catfile($self->config->save_location, $filename);
-        
-        if (!-d $self->config->save_location) {
-            make_path($self->config->save_location);
-        }
-        
-        $self->app->log_message('info', "Saving screenshot to: $filepath");
-        
-        eval {
-            if ($format_string eq "jpeg") {
-                $pixbuf->savev($filepath, $format_string, ['quality'], ['100']);
-            } elsif ($format_string eq "webp") {
-             
-                $pixbuf->savev($filepath, $format_string, ['quality'], ['100']);
-            } elsif ($format_string eq "avif") {
-              
-                $pixbuf->savev($filepath, $format_string, ['quality'], ['100']);
-            } else {
-                $pixbuf->savev($filepath, $format_string, [], []);
-            }
-            $self->app->log_message('info', "Screenshot saved successfully");
-            
-            $self->generate_thumbnail($pixbuf, $filepath);
-            
-            if ($self->config->show_floating_thumbnail) {
-                $self->ui->show_floating_thumbnail($pixbuf, $filepath);
-            }
-        };
-        
-        if ($@) {
-            $self->app->log_message('error', "Error saving screenshot: $@");
-    
-            if ($format_string ne "png") {
-                eval {
-                    my $png_path = $filepath;
-                    $png_path =~ s/\.\w+$/.png/;
-                    $self->app->log_message('info', "Attempting to save as PNG instead: $png_path");
-                    $pixbuf->save($png_path, "png");
-                    $self->app->log_message('info', "Screenshot saved as PNG successfully");
-                    
-                    $self->generate_thumbnail($pixbuf, $png_path);
-                    
-                    if ($self->config->show_floating_thumbnail) {
-                        $self->ui->show_floating_thumbnail($pixbuf, $png_path);
-                    }
-                };
-                if ($@) {
-                    $self->app->log_message('error', "Critical error: Could not save screenshot: $@");
-                }
-            } else {
-                $self->app->log_message('error', "Critical error: Could not save screenshot: $@");
-            }
+       
+            my $timestamp = strftime("%Y-%m-%d-%H%M%S", localtime);
+            my $filename = "Screenshot-$timestamp";
+            $self->ui->save_screenshot_from_preview($pixbuf, $filename, $self->config->save_location);
         }
     }
 }
@@ -703,5 +642,8 @@ sub generate_thumbnail {
 }
 
 1;
+
+
+
 
 
