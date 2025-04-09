@@ -130,7 +130,15 @@ sudo pacman -S gnome-screenshot
    ```
    perl install.pl
    ```
+3. You can also download the source code zip manually:
 
+![Screenshot-2025-04-09-135150](https://github.com/user-attachments/assets/8ac9c568-4c4a-4010-9856-dfd6d5a05221)
+
+unzip it, open terminal inside the perl-screenshot-tool folder, and run:
+
+```
+   perl install.pl
+   ```
 ## Manual Installation
 
 If you prefer to install manually:
