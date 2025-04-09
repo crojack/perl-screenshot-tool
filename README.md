@@ -2,6 +2,9 @@
 
 A screenshot utility for Linux that works best on X11. It also supports Gnome Wayland through the gnome-screenshot backend. For KDE Plasma Wayland sessions, please use the native screenshot tools.
 
+![Selection_001](https://github.com/user-attachments/assets/2e921beb-981e-427a-b691-e2b76e854641)
+
+
 ## Features
 
 - Capture windows, regions, or your entire screen
@@ -11,6 +14,13 @@ A screenshot utility for Linux that works best on X11. It also supports Gnome Wa
 - Support for multiple image formats: PNG, JPG, WebP, and AVIF (if supported on your system)
 - Customize the UI with your own icons, colors, and sizes
 - Set capture timers for perfect screenshots
+
+  ![Workspace 1_001](https://github.com/user-attachments/assets/b1a31ebf-963d-4cd7-a4e1-caa64dab31b6)
+
+
+  ![Workspace 1_002](https://github.com/user-attachments/assets/7b527702-5f8c-4702-9cfb-690b8f07fb41)
+
+
 
 ## Wayland Support
 
