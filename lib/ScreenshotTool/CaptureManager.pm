@@ -31,19 +31,16 @@ has 'app' => (
     required => 1,
 );
 
-
 has 'region_selector' => (
     is      => 'rw',
     lazy    => 1,
     builder => '_build_region_selector',
 );
 
-
 has 'preview_pixbuf' => (
     is      => 'rw',
     default => sub { undef },
 );
-
 
 has 'selection_start_x' => (
     is      => 'rw',
@@ -64,7 +61,6 @@ has 'selection_height' => (
     is      => 'rw',
     default => sub { 0 },
 );
-
 
 has 'has_x11_protocol' => (
     is      => 'rw',
@@ -100,7 +96,6 @@ sub BUILD {
     }
 }
 
-
 sub _build_region_selector {
     my ($self) = @_;
     return ScreenshotTool::RegionSelector->new(
@@ -108,7 +103,6 @@ sub _build_region_selector {
         capture_manager => $self
     );
 }
-
 
 sub config {
     my ($self) = @_;
@@ -119,7 +113,6 @@ sub ui {
     my ($self) = @_;
     return $self->app->ui;
 }
-
 
 sub get_wayland_backend {
     my ($self) = @_;
@@ -216,7 +209,6 @@ sub capture_wayland_region_gnome {
     return 1; 
 }
 
-
 sub start_capture {
     my ($self) = @_;
     
@@ -253,7 +245,6 @@ sub start_capture {
     }
 }
 
-
 sub start_timer {
     my ($self) = @_;
     
@@ -267,7 +258,6 @@ sub start_timer {
         }
     );
 }
-
 
 sub perform_capture {
     my ($self) = @_;
@@ -325,7 +315,6 @@ sub capture_fullscreen {
     $self->ui->restore_main_window();
 }
 
-
 sub select_window {
     my ($self) = @_;
     
@@ -364,7 +353,6 @@ sub select_window {
     });
 }
 
-
 sub get_window_at_position {
     my ($self, $x, $y) = @_;
     
@@ -384,7 +372,6 @@ sub get_window_at_position {
         return undef;
     }
 }
-
 
 sub capture_specific_window {
     my ($self, $window_id) = @_;
@@ -503,7 +490,6 @@ sub capture_specific_window {
     }
 }
 
-
 sub capture_wayland_window {
     my ($self, $with_decorations) = @_;
     
@@ -538,7 +524,6 @@ sub capture_wayland_window {
     }
 }
 
-
 sub add_cursor {
     my ($self, $screenshot, $region_x, $region_y) = @_;
     
@@ -546,7 +531,6 @@ sub add_cursor {
     my $cursor_utils = ScreenshotTool::CursorUtils->new(app => $self->app);
     return $cursor_utils->add_cursor_to_screenshot($screenshot, $region_x, $region_y);
 }
-
 
 sub set_pixel {
     my ($self, $pixbuf, $x, $y, $r, $g, $b, $a) = @_;
@@ -564,7 +548,6 @@ sub set_pixel {
     
     $temp_pixbuf->copy_area(0, 0, 1, 1, $pixbuf, $x, $y);
 }
-
 
 sub save_screenshot {
     my ($self, $pixbuf) = @_;
@@ -591,7 +574,6 @@ sub save_screenshot {
         }
     }
 }
-
 
 sub generate_thumbnail {
     my ($self, $pixbuf, $filepath) = @_;
