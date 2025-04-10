@@ -23,6 +23,8 @@ use ScreenshotTool::Utils;
 use ScreenshotTool::CaptureManager;
 use ScreenshotTool::RegionSelector;
 use ScreenshotTool::KeyboardShortcuts;
+use ScreenshotTool::Logger;
+use ScreenshotTool::CursorUtils;
 
 
 has 'APP_NAME' => (
