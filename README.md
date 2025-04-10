@@ -8,7 +8,7 @@ A screenshot utility for Linux that works best on X11. It also supports Gnome Wa
 ![Screenshot-2025-04-09-233033](https://github.com/user-attachments/assets/8ab886d8-7215-44cf-9638-9d1fa4eea73c)
 
 
-![Screenshot-2025-04-09-233117](https://github.com/user-attachments/assets/a519e20b-0df5-4925-bf62-021a995f4bdf)
+![Workspace 1_001](https://github.com/user-attachments/assets/d6fa0aa9-1962-418b-bf99-992006435a48)
 
 
 ## Features
