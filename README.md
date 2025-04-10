@@ -13,9 +13,9 @@ A screenshot utility for Linux that works best on X11. It also supports Gnome Wa
 
 ## Features
 
-- Capture windows, regions, or your entire screen
+- Capture windows, regions, or entire screen
 - Easily drag and resize the area selector
-- View floating thumbnails of your screenshots
+- View preview window (floating thumbnail) of screenshots
 - Save screenshots to files or copy directly to clipboard
 - Support for multiple image formats: PNG, JPG, WebP, and AVIF (if supported on your system)
 - Customize the UI with your own icons, colors, and sizes
