@@ -20,7 +20,6 @@ has 'capture_manager' => (
     required => 1,
 );
 
-
 has 'overlay_window' => (
     is      => 'rw',
     default => sub { undef },
@@ -40,7 +39,6 @@ has 'escape_button' => (
     is      => 'rw',
     default => sub { undef },
 );
-
 
 has 'preview_pixbuf' => (
     is      => 'rw',
@@ -108,7 +106,6 @@ sub ui {
     return $self->app->ui;
 }
 
-
 sub destroy_overlay {
     my ($self) = @_;
     
@@ -118,12 +115,10 @@ sub destroy_overlay {
     }
 }
 
-
 sub select_region {
     my ($self) = @_;
     $self->interactive_region_selection();
 }
-
 
 sub interactive_region_selection {
     my ($self) = @_;
@@ -341,7 +336,6 @@ sub interactive_region_selection {
     }
 }
 
-
 sub normalize_selection_coords {
     my ($self) = @_;
     
@@ -362,7 +356,6 @@ sub normalize_selection_coords {
     
     return ($x, $y, $w, $h);
 }
-
 
 sub normalize_selection {
     my ($self) = @_;
@@ -457,7 +450,6 @@ sub capture_selected_region {
     }
 }
 
-
 sub perform_region_capture {
     my ($self, $x, $y, $w, $h) = @_;
     
@@ -495,8 +487,6 @@ sub perform_region_capture {
     
     $self->ui->restore_main_window();
 }
-
-
 
 sub draw_selection_overlay {
     my ($self, $widget, $cr) = @_;
@@ -618,7 +608,6 @@ sub draw_selection_overlay {
     return FALSE;
 }
 
-
 sub draw_handles {
     my ($self, $cr, $x, $y, $w, $h) = @_;
     
@@ -635,7 +624,6 @@ sub draw_handles {
     $self->draw_handle($cr, $x + $w/2 - $half_handle, $y + $h - $half_handle);   # Bottom (7)
     $self->draw_handle($cr, $x - $half_handle, $y + $h/2 - $half_handle);        # Left (8)
 }
-
 
 sub draw_handle {
     my ($self, $cr, $x, $y) = @_;
@@ -714,7 +702,6 @@ sub check_handle {
     
     return 0;
 }
-
 
 sub update_cursor {
     my ($self, $mouse_x, $mouse_y) = @_;
