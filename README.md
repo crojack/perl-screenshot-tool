@@ -11,6 +11,8 @@ A screenshot utility for Linux that works best on X11. It also supports Gnome Wa
 ![Workspace 1_001](https://github.com/user-attachments/assets/d6fa0aa9-1962-418b-bf99-992006435a48)
 
 
+![Workspace 1_001](https://github.com/user-attachments/assets/e1d4a3bf-2d80-4e6b-9f24-8767e5ac2f99)
+
 ## Features
 
 - Capture windows, regions, or entire screen
