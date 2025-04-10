@@ -15,30 +15,25 @@ has 'app' => (
     required => 1,
 );
 
-
 has 'main_window' => (
     is      => 'rw',
     default => sub { undef },
 );
-
 
 has 'icon_cache' => (
     is      => 'ro',
     default => sub { {} },
 );
 
-
 has 'is_quitting' => (
     is      => 'rw',
     default => sub { 0 },
 );
 
-
 has 'active_timeouts' => (
     is      => 'rw',
     default => sub { [] },
 );
-
 
 has 'current_icon_size' => (
     is      => 'rw',
@@ -65,7 +60,6 @@ has 'theme_colors' => (
 );
 
 
-
 sub config {
     my ($self) = @_;
     return $self->app->config;
@@ -76,14 +70,11 @@ sub capture_manager {
     return $self->app->capture_manager;
 }
 
-
 sub show_main_window {
     my ($self) = @_;
     
-
     $self->is_quitting(0);
     
-
     $self->{main_window} = Gtk3::Window->new('toplevel');
     $self->{main_window}->set_title($self->app->app_name);
     $self->{main_window}->set_resizable(FALSE);
@@ -207,7 +198,6 @@ sub show_main_window {
     $self->{main_window}->grab_focus();
 }
 
-
 sub create_button {
     my ($self, $icon_name, $label_text, $callback) = @_;
     
@@ -230,7 +220,6 @@ sub create_button {
     
     return $button;
 }
-
 
 sub create_icon_button {
     my ($self, $icon_name, $tooltip) = @_;
@@ -320,7 +309,6 @@ sub get_button_icon {
     return $icon;
 }
 
-
 sub hide_main_window_completely {
     my ($self) = @_;
     
@@ -340,7 +328,6 @@ sub hide_main_window_completely {
     
     Gtk3::main_iteration() while Gtk3::events_pending();
 }
-
 
 sub restore_main_window {
     my ($self) = @_;
@@ -429,7 +416,6 @@ sub restore_main_window {
         Gtk3::main_iteration() while Gtk3::events_pending();
     }
 }
-
 
 sub show_options_menu {
     my ($self, $button) = @_;
@@ -618,7 +604,6 @@ sub show_appearance_menu {
     }
 }
 
-
 sub change_icon_size {
     my ($self, $size) = @_;
     
@@ -651,7 +636,6 @@ sub change_icon_size {
     }
 }
 
-
 sub get_icon_path {
     my ($self, $icon_name) = @_;
     
@@ -673,7 +657,6 @@ sub get_icon_path {
     
     return undef;
 }
-
 
 sub show_color_picker {
     my ($self) = @_;
@@ -857,7 +840,6 @@ sub show_color_picker {
     $dialog->destroy();
 }
 
-
 sub get_system_theme_colors {
     my ($self) = @_;
     
@@ -923,7 +905,6 @@ sub get_system_theme_colors {
     return $colors;
 }
 
-
 sub update_color_preview {
     my ($self, $preview_button, $bg_button, $fg_button, $accent_button) = @_;
     
@@ -974,7 +955,6 @@ sub update_color_preview {
     }
 }
 
-
 sub get_color_from_button {
     my ($self, $button) = @_;
     
@@ -985,7 +965,6 @@ sub get_color_from_button {
     
     return sprintf("#%02x%02x%02x", $r, $g, $b);
 }
-
 
 sub hex_to_rgba {
     my ($self, $hex) = @_;
@@ -1004,7 +983,6 @@ sub hex_to_rgba {
     return $rgba;
 }
 
-
 sub rgba_to_hex {
     my ($self, $rgba) = @_;
     
@@ -1014,7 +992,6 @@ sub rgba_to_hex {
     
     return sprintf("#%02x%02x%02x", $r, $g, $b);
 }
-
 
 sub apply_color_theme {
     my ($self, $theme_name) = @_;
@@ -1100,7 +1077,6 @@ sub apply_color_theme {
     $self->{current_theme} = $theme_name;
 }
 
-
 sub select_other_location {
     my ($self) = @_;
     
@@ -1122,7 +1098,6 @@ sub select_other_location {
     
     $dialog->destroy();
 }
-
 
 sub show_floating_thumbnail {
     my ($self, $pixbuf, $temp_filepath) = @_;
