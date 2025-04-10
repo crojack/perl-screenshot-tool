@@ -6,6 +6,7 @@ use Moo;
 use Gtk3 qw(-init);
 use Glib qw(TRUE FALSE);
 use Cairo;
+use POSIX qw(strftime);
 use namespace::clean;
 
 
@@ -44,6 +45,15 @@ has 'current_icon_size' => (
     default => sub { 64 },
 );
 
+has 'last_window_x' => (
+    is      => 'rw',
+    default => sub { -1 },  # -1 means position not saved yet
+);
+
+has 'last_window_y' => (
+    is      => 'rw',
+    default => sub { -1 },
+);
 
 has 'theme_colors' => (
     is      => 'rw',
@@ -318,10 +328,14 @@ sub hide_main_window_completely {
         return; 
     }
     
+    my ($x, $y) = $self->{main_window}->get_position();
+    $self->last_window_x($x);
+    $self->last_window_y($y);
+    
+    $self->app->log_message('debug', "Saving window position: $x, $y");
+    
     $self->{main_window}->iconify();
-    
     $self->{main_window}->hide();
-    
     $self->{main_window}->set_opacity(0.0);
     
     Gtk3::main_iteration() while Gtk3::events_pending();
@@ -337,69 +351,79 @@ sub restore_main_window {
     }
     
     if (defined $self->{main_window}) {
-       
         return if $self->is_quitting;
         
         $self->{main_window}->set_opacity(1.0);
         
-        my $screen = Gtk3::Gdk::Screen::get_default();
-        my $screen_width = $screen->get_width();
-        my $screen_height = $screen->get_height();
-        
-        $self->{main_window}->set_resizable(TRUE);
-        $self->{main_window}->resize(1, 1);  
-        $self->{main_window}->set_resizable(FALSE);
-        
-        Gtk3::main_iteration() while Gtk3::events_pending();
-        
-        my $window_width = $self->{main_window}->get_allocated_width();
-        my $window_height = $self->{main_window}->get_allocated_height();
-        
-        if (!$window_width || !$window_height || $window_width < 10 || $window_height < 10) {
-            $window_width = 350;  
-            $window_height = 80; 
-        }
-        
-        my $x_position = int(($screen_width - $window_width) / 2);
-        my $y_position = $screen_height - $window_height - 50; 
-        
-        $self->app->log_message('debug', "Positioning main window at: $x_position, $y_position (screen: $screen_width x $screen_height, window: $window_width x $window_height)");
-        
-        if ($self->app->window_system =~ /^wayland/) {
-    
-            $self->{main_window}->set_resizable(TRUE);
+        if ($self->last_window_x >= 0 && $self->last_window_y >= 0) {
+            $self->app->log_message('debug', "Restoring window to saved position: " . 
+                                   $self->last_window_x . ", " . $self->last_window_y);
             
+            $self->{main_window}->move($self->last_window_x, $self->last_window_y);
+            $self->{main_window}->deiconify();
+            $self->{main_window}->show_all();
+            $self->{main_window}->present();
+            
+            # Make sure the position is correctly applied
+            while (Gtk3::events_pending()) {
+                Gtk3::main_iteration();
+            }
+            
+            # Apply position a second time to ensure it sticks
+            $self->{main_window}->move($self->last_window_x, $self->last_window_y);
+        } else {
+            # Fall back to the old centering method if we don't have a saved position
             my $screen = Gtk3::Gdk::Screen::get_default();
+            my $screen_width = $screen->get_width();
             my $screen_height = $screen->get_height();
             
-            $self->{main_window}->resize(1, 1);
-            
-            my $window_width = 350; 
-            my $window_height = 80; 
-            
-            $self->{main_window}->set_gravity('south');
-            
-            $self->{main_window}->move(0, $screen_height - $window_height - 50);
-            
-            $self->{main_window}->deiconify();
-            $self->{main_window}->show_all();
-            
-            $self->{main_window}->resize($window_width, $window_height);
-            $self->{main_window}->present();
-            
+            $self->{main_window}->set_resizable(TRUE);
+            $self->{main_window}->resize(1, 1);  
             $self->{main_window}->set_resizable(FALSE);
-        } else {
-        
-            $self->{main_window}->move($x_position, $y_position);
-            
-            $self->{main_window}->deiconify();
-            
-            $self->{main_window}->show_all();
-            $self->{main_window}->present();
             
             Gtk3::main_iteration() while Gtk3::events_pending();
-           
-            $self->{main_window}->move($x_position, $y_position);
+            
+            my $window_width = $self->{main_window}->get_allocated_width();
+            my $window_height = $self->{main_window}->get_allocated_height();
+            
+            if (!$window_width || !$window_height || $window_width < 10 || $window_height < 10) {
+                $window_width = 350;  
+                $window_height = 80; 
+            }
+            
+            my $x_position = int(($screen_width - $window_width) / 2);
+            my $y_position = $screen_height - $window_height - 50; 
+            
+            $self->app->log_message('debug', "Positioning main window at: $x_position, $y_position " . 
+                                   "(screen: $screen_width x $screen_height, window: $window_width x $window_height)");
+            
+            if ($self->app->window_system =~ /^wayland/) {
+                $self->{main_window}->set_resizable(TRUE);
+                
+                my $screen = Gtk3::Gdk::Screen::get_default();
+                my $screen_height = $screen->get_height();
+                
+                $self->{main_window}->resize(1, 1);
+                
+                my $window_width = 350; 
+                my $window_height = 80; 
+                
+                $self->{main_window}->set_gravity('south');
+                $self->{main_window}->move(0, $screen_height - $window_height - 50);
+                $self->{main_window}->deiconify();
+                $self->{main_window}->show_all();
+                $self->{main_window}->resize($window_width, $window_height);
+                $self->{main_window}->present();
+                $self->{main_window}->set_resizable(FALSE);
+            } else {
+                $self->{main_window}->move($x_position, $y_position);
+                $self->{main_window}->deiconify();
+                $self->{main_window}->show_all();
+                $self->{main_window}->present();
+                
+                Gtk3::main_iteration() while Gtk3::events_pending();
+                $self->{main_window}->move($x_position, $y_position);
+            }
         }
         
         Gtk3::main_iteration() while Gtk3::events_pending();
@@ -1101,74 +1125,312 @@ sub select_other_location {
 
 
 sub show_floating_thumbnail {
-    my ($self, $pixbuf, $filepath) = @_;
+    my ($self, $pixbuf, $temp_filepath) = @_;
     
-    my ($thumb_w, $thumb_h) = (600, 600);
+    # Calculate thumbnail dimensions (keeping aspect ratio)
+    my ($thumb_w, $thumb_h) = (800, 600);
     
     my $orig_w = $pixbuf->get_width();
     my $orig_h = $pixbuf->get_height();
     my $ratio = $orig_w / $orig_h;
     
     if ($ratio > 1) {
- 
-        $thumb_w = 600;
-        $thumb_h = int(600 / $ratio);
+        # Landscape
+        $thumb_w = 800;
+        $thumb_h = int(800 / $ratio);
     } else {
-     
+        # Portrait
         $thumb_h = 600;
         $thumb_w = int(600 * $ratio);
     }
     
     my $thumbnail = $pixbuf->scale_simple($thumb_w, $thumb_h, 'bilinear');
     
-    my $thumb_window = Gtk3::Window->new('popup');
+    my $thumb_window = Gtk3::Window->new('toplevel');
     $thumb_window->set_position('center');
-    $thumb_window->set_keep_above(TRUE);
-    $thumb_window->set_decorated(FALSE);
+    $thumb_window->set_title("Screenshot Preview");
+    $thumb_window->set_decorated(TRUE);
+    $thumb_window->set_border_width(10);
+    $thumb_window->set_resizable(FALSE);
     
-    my $vbox = Gtk3::Box->new('vertical', 0);
-    $vbox->set_spacing(0);
+    my $vbox = Gtk3::Box->new('vertical', 10);
     $thumb_window->add($vbox);
     
-    my $image = Gtk3::Image->new_from_pixbuf($thumbnail);
-    $vbox->pack_start($image, FALSE, FALSE, 0); 
-    
-    my $button_box = Gtk3::Box->new('horizontal', 0);
-    $button_box->set_homogeneous(TRUE); 
+    my $button_box = Gtk3::Box->new('horizontal', 10);
     $vbox->pack_start($button_box, FALSE, FALSE, 0);
     
-    my $open_button = Gtk3::Button->new_with_label("Open");
+    my $cancel_button = Gtk3::Button->new_with_label("Cancel");
+    $cancel_button->signal_connect('clicked' => sub {
+        $thumb_window->destroy();
+    });
+    $button_box->pack_start($cancel_button, FALSE, FALSE, 0);
+    
+    my $spacer = Gtk3::Box->new('horizontal', 0);
+    $button_box->pack_start($spacer, TRUE, TRUE, 0);
+    
+    my @time = localtime();
+    my $timestamp = sprintf(
+        "%04d-%02d-%02d-%02d-%02d-%02d",
+        $time[5] + 1900,  # year
+        $time[4] + 1,     # month
+        $time[3],         # day
+        $time[2],         # hour
+        $time[1],         # minute
+        $time[0]          # second
+    );
+
+    my $format = $self->app->config->image_format || "jpg";
+    my $default_filename = "Screenshot from $timestamp.$format";
+    
+    my $filename_entry = Gtk3::Entry->new();
+    $filename_entry->set_text($default_filename);
+    $filename_entry->set_editable(TRUE);
+    
+    my $location_combo = Gtk3::ComboBoxText->new();
+    
+    my $pictures_dir = "$ENV{HOME}/Pictures";
+    my $desktop_dir = "$ENV{HOME}/Desktop";
+    
+    eval {
+        my $xdg_pictures = `xdg-user-dir PICTURES`;
+        chomp($xdg_pictures);
+        $pictures_dir = $xdg_pictures if $xdg_pictures && -d $xdg_pictures;
+        
+        my $xdg_desktop = `xdg-user-dir DESKTOP`;
+        chomp($xdg_desktop);
+        $desktop_dir = $xdg_desktop if $xdg_desktop && -d $xdg_desktop;
+    };
+    
+    $location_combo->append_text($pictures_dir);
+    $location_combo->append_text($desktop_dir);
+    $location_combo->append_text("Other...");
+    
+    if ($self->app->config->save_location ne "clipboard" &&
+        $self->app->config->save_location ne $pictures_dir &&
+        $self->app->config->save_location ne $desktop_dir) {
+        $location_combo->append_text($self->app->config->save_location);
+    }
+    
+    my $active_index = 0; 
+    if ($self->app->config->save_location eq $desktop_dir) {
+        $active_index = 1;
+    } elsif ($self->app->config->save_location ne "clipboard" &&
+             $self->app->config->save_location ne $pictures_dir &&
+             $self->app->config->save_location ne $desktop_dir) {
+        $active_index = 3;
+    }
+    $location_combo->set_active($active_index);
+    
+    $location_combo->signal_connect('changed' => sub {
+        my $selected = $location_combo->get_active_text();
+        if ($selected eq "Other...") {
+            my $dialog = Gtk3::FileChooserDialog->new(
+                "Select Folder",
+                $thumb_window,
+                'select-folder',
+                'Cancel' => 'cancel',
+                'Select' => 'ok'
+            );
+            
+            if ($self->app->config->save_location ne "clipboard") {
+                $dialog->set_current_folder($self->app->config->save_location);
+            } else {
+                $dialog->set_current_folder($pictures_dir);
+            }
+            
+            if ($dialog->run() eq 'ok') {
+                my $chosen_dir = $dialog->get_filename();
+                
+                $location_combo->remove(2);
+                
+                my $found = 0;
+                for (my $i = 0; $i < $location_combo->get_model()->iter_n_children(undef); $i++) {
+                    if ($location_combo->get_active_text() eq $chosen_dir) {
+                        $found = 1;
+                        $location_combo->set_active($i);
+                        last;
+                    }
+                }
+                
+                if (!$found) {
+                    $location_combo->append_text($chosen_dir);
+                    $location_combo->set_active($location_combo->get_model()->iter_n_children(undef) - 1);
+                }
+                
+                $location_combo->append_text("Other...");
+            } else {
+               
+                $location_combo->set_active($active_index);
+            }
+            
+            $dialog->destroy();
+        }
+    });
+    
+    my $copy_button = Gtk3::Button->new_with_label("Copy to Clipboard");
+    $copy_button->signal_connect('clicked' => sub {
+        my $clipboard = Gtk3::Clipboard::get(Gtk3::Gdk::Atom::intern('CLIPBOARD', FALSE));
+        $clipboard->set_image($pixbuf);
+        $self->app->log_message('info', "Screenshot copied to clipboard");
+        $thumb_window->destroy();
+    });
+    $button_box->pack_start($copy_button, FALSE, FALSE, 0);
+    
+    my $open_button = Gtk3::Button->new_with_label("Open/Edit");
     $open_button->signal_connect('clicked' => sub {
-        system("xdg-open", $filepath);
-        $thumb_window->destroy();
-    });
-    $button_box->pack_start($open_button, TRUE, TRUE, 0);
     
-    my $close_button = Gtk3::Button->new_with_label("Close");
-    $close_button->signal_connect('clicked' => sub {
-        $thumb_window->destroy();
+        my $temp_dir = $ENV{TMPDIR} || $ENV{TMP} || '/tmp';
+        my $format = $self->app->config->image_format || 'jpg';
+        my $temp_file = "$temp_dir/screenshot-temp-$timestamp.$format";
+        
+        eval {
+         
+            my $format_string = ($format eq 'jpg') ? 'jpeg' : $format;
+            if ($format_string eq 'jpeg' || $format_string eq 'webp') {
+                $pixbuf->savev($temp_file, $format_string, ['quality'], ['100']);
+            } elsif ($format_string eq 'avif' && $self->app->config->avif_supported) {
+                $pixbuf->savev($temp_file, $format_string, ['quality'], ['100']);
+            } else {
+                $pixbuf->savev($temp_file, $format_string, [], []);
+            }
+
+            $self->app->log_message('info', "Saved temporary file for editing: $temp_file");
+            
+            $thumb_window->set_keep_above(FALSE);
+            
+            system("xdg-open", $temp_file);
+        };
+        
+        if ($@) {
+            $self->app->log_message('error', "Error opening image for editing: $@");
+        }
     });
-    $button_box->pack_start($close_button, TRUE, TRUE, 0);
+    $button_box->pack_start($open_button, FALSE, FALSE, 0);
     
-    $open_button->set_size_request(-1, 30); 
-    $close_button->set_size_request(-1, 30); 
+    my $save_button = Gtk3::Button->new_with_label("Save");
+    $save_button->signal_connect('clicked' => sub {
+        my $selected_filename = $filename_entry->get_text();
+        my $selected_location = $location_combo->get_active_text();
+        
+        if ($selected_location eq "Other...") {
+       
+            my $dialog = Gtk3::FileChooserDialog->new(
+                "Save Screenshot",
+                $thumb_window,
+                'select-folder',
+                'Cancel' => 'cancel',
+                'Save' => 'ok'
+            );
+            
+            $dialog->set_current_folder($pictures_dir);
+            
+            if ($dialog->run() eq 'ok') {
+                $selected_location = $dialog->get_filename();
+                $self->save_screenshot_from_preview($pixbuf, $selected_filename, $selected_location);
+                $thumb_window->destroy();
+            }
+            
+            $dialog->destroy();
+        } else {
+            $self->save_screenshot_from_preview($pixbuf, $selected_filename, $selected_location);
+            $thumb_window->destroy();
+        }
+    });
+    $button_box->pack_end($save_button, FALSE, FALSE, 0);
+    
+    my $image = Gtk3::Image->new_from_pixbuf($thumbnail);
+    $vbox->pack_start($image, TRUE, TRUE, 0);
+
+    my $bottom_box = Gtk3::Box->new('vertical', 10);
+    $vbox->pack_start($bottom_box, FALSE, FALSE, 0);
+    
+    my $filename_box = Gtk3::Box->new('horizontal', 5);
+    $bottom_box->pack_start($filename_box, FALSE, FALSE, 0);
+    
+    my $filename_label = Gtk3::Label->new("Name:");
+    $filename_box->pack_start($filename_label, FALSE, FALSE, 0);
+    
+    $filename_box->pack_start($filename_entry, TRUE, TRUE, 0);
+    
+    my $folder_box = Gtk3::Box->new('horizontal', 5);
+    $bottom_box->pack_start($folder_box, FALSE, FALSE, 0);
+    
+    my $folder_label = Gtk3::Label->new("Folder:");
+    $folder_box->pack_start($folder_label, FALSE, FALSE, 0);
+    
+    $folder_box->pack_start($location_combo, TRUE, TRUE, 0);
     
     $thumb_window->show_all();
-    
-    $thumb_window->resize(1, 1);
-    
-    my $timeout_id;
-    $timeout_id = Glib::Timeout->add(5000, sub {
-     
-        $self->active_timeouts([
-            grep { $_ != $timeout_id } @{$self->active_timeouts}
-        ]);
-        
-        $thumb_window->destroy() if $thumb_window;
-        return FALSE;
-    });
+}
 
-    push @{$self->active_timeouts}, $timeout_id;
+sub save_screenshot_from_preview {
+    my ($self, $pixbuf, $filename, $location) = @_;
+    
+    my $format = $self->app->config->image_format || 'jpg';
+    
+    if ($filename =~ /\.(\w+)$/) {
+        $format = lc($1);
+    } else {
+        $filename .= ".$format";
+    }
+    
+    if (!-d $location) {
+        make_path($location);
+    }
+    
+    my $filepath = File::Spec->catfile($location, $filename);
+    
+    $self->app->log_message('info', "Saving screenshot to: $filepath");
+    
+    eval {
+        my $format_string;
+        if ($format eq "jpg") {
+            $format_string = "jpeg";
+        } elsif ($format eq "webp") {
+            $format_string = "webp";
+        } elsif ($format eq "avif" && $self->app->config->avif_supported) {
+            $format_string = "avif";
+        } else {
+            $format_string = $format;
+        }
+        
+        if ($format_string eq "jpeg") {
+            $pixbuf->savev($filepath, $format_string, ['quality'], ['100']);
+        } elsif ($format_string eq "webp") {
+            $pixbuf->savev($filepath, $format_string, ['quality'], ['100']);
+        } elsif ($format_string eq "avif") {
+            $pixbuf->savev($filepath, $format_string, ['quality'], ['100']);
+        } else {
+            $pixbuf->savev($filepath, $format_string, [], []);
+        }
+        
+        $self->app->log_message('info', "Screenshot saved successfully to $filepath");
+        
+        $self->app->config->save_location($location);
+        
+        $self->app->capture_manager->generate_thumbnail($pixbuf, $filepath);
+    };
+    
+    if ($@) {
+        $self->app->log_message('error', "Error saving screenshot: $@");
+        
+        if ($format ne "png") {
+            eval {
+                my $png_path = $filepath;
+                $png_path =~ s/\.\w+$/.png/;
+                $self->app->log_message('info', "Attempting to save as PNG instead: $png_path");
+                $pixbuf->save($png_path, "png");
+                $self->app->log_message('info', "Screenshot saved as PNG successfully");
+                
+                $self->app->capture_manager->generate_thumbnail($pixbuf, $png_path);
+            };
+            if ($@) {
+                $self->app->log_message('error', "Critical error: Could not save screenshot: $@");
+            }
+        } else {
+            $self->app->log_message('error', "Critical error: Could not save screenshot: $@");
+        }
+    }
 }
 
 sub cancel_all_timeouts {
