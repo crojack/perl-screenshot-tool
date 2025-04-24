@@ -2,7 +2,7 @@
 
 A screenshot utility for Linux that works best on X11. It also supports Gnome Wayland through the gnome-screenshot backend. For KDE Plasma Wayland sessions, please use the native screenshot tools.
 
-https://youtu.be/jLllGZpJa8Q?si=A8u1GP7k2vBAXhI6
+https://youtu.be/c1aHxGBIZWE?si=K36vyL_u3jba0gZA
 
 ![Selection_001](https://github.com/user-attachments/assets/2e921beb-981e-427a-b691-e2b76e854641)
 
